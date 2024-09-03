@@ -54,14 +54,6 @@
         gesture-detector
         arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
     >
-        <a-assets>
-            <a-asset-item id="sandcastleModel" src="assets/sand-castle.glb"></a-asset-item>
-        </a-assets>
-
-<!-- raycaster="objects: .clickable"
-      emitevents="true"
-      cursor="fuse: false; rayOrigin: mouse;"  -->
-        
         <a-nft
             type="nft"
             url="https://raw.githack.com/Shinijuana/ARDOSMARkER/main/images/nft/dos"
@@ -72,6 +64,7 @@
             raycaster="objects: .clickable"
             emitevents="true"
             cursor="fuse: false; rayOrigin: mouse;"
+            id="nftMarker"
         >
             <a-entity
                 id="sandcastle"
@@ -88,20 +81,44 @@
        
     </a-scene>
 
-    <!-- Hide loading overlay once NFT markers are loaded -->
+    <!-- Script per gestire la perdita del target -->
     <script>
+        let lastPosition, lastRotation, lastScale;
+
+        const model = document.getElementById('sandcastle');
+        const nftMarker = document.getElementById('nftMarker');
+
+        nftMarker.addEventListener('markerFound', () => {
+            console.log('Marker found');
+            model.setAttribute('visible', 'true');
+        });
+
+        nftMarker.addEventListener('markerLost', () => {
+            console.log('Marker lost');
+            // Salva l'ultima posizione, rotazione e scala del modello
+            lastPosition = model.getAttribute('position');
+            lastRotation = model.getAttribute('rotation');
+            lastScale = model.getAttribute('scale');
+
+            // Mantenere il modello nella sua ultima posizione
+            model.setAttribute('position', lastPosition);
+            model.setAttribute('rotation', lastRotation);
+            model.setAttribute('scale', lastScale);
+
+            // Disattivare l'aggiornamento automatico della posizione
+            model.object3D.position.set(lastPosition.x, lastPosition.y, lastPosition.z);
+            model.object3D.rotation.set(
+                THREE.Math.degToRad(lastRotation.x),
+                THREE.Math.degToRad(lastRotation.y),
+                THREE.Math.degToRad(lastRotation.z)
+            );
+            model.object3D.scale.set(lastScale.x, lastScale.y, lastScale.z);
+        });
+
+        // Nascondere l'overlay di caricamento
         window.addEventListener("arjs-nft-loaded", () => {
             console.log('NFT markers have been loaded. Hiding the loading overlay.');
             document.querySelector('.arjs-loader').style.display = 'none';
-        });
-
-        // Optional: Log errors or warnings if needed
-        window.addEventListener("error", (e) => {
-            console.error('Error detected:', e.message);
-        });
-
-        window.addEventListener("warning", (e) => {
-            console.warn('Warning detected:', e.message);
         });
     </script>
 </body>
