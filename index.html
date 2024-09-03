@@ -9,8 +9,7 @@
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar-nft.js"></script>
 
-    <!-- Additional libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <!-- OpenCV -->
     <script async src="https://docs.opencv.org/master/opencv.js"></script>
 
     <!-- Custom scripts -->
@@ -53,6 +52,7 @@
         embedded
         gesture-detector
         arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+        tensorflow-contour-processor
     >
         <a-assets>
             <a-asset-item id="sandcastleModel" src="assets/sand-castle.glb"></a-asset-item>
@@ -85,65 +85,76 @@
        
     </a-scene>
 
-    <!-- Script per gestire la perdita del target -->
+    <!-- OpenCV TensorFlow Script -->
     <script>
-        let lastPosition, lastRotation, lastScale;
-        let markerVisible = false;
+        window.onOpenCvReady = () => {
+            cv.onRuntimeInitialized = () => {
+                console.log('OpenCV.js is ready.');
 
-        const model = document.getElementById('sandcastle');
-        const nftMarker = document.getElementById('nftMarker');
+                AFRAME.components['tensorflow-contour-processor'].initializeWebcamAndCanvas();
+            };
+        };
 
-        nftMarker.addEventListener('markerFound', () => {
-            console.log('Marker found');
-            markerVisible = true;
-            model.setAttribute('visible', 'true');
-        });
+        AFRAME.registerComponent('tensorflow-contour-processor', {
+            schema: {
+                targetName: { type: 'string' },
+            },
 
-        nftMarker.addEventListener('markerLost', () => {
-            console.log('Marker lost');
-            markerVisible = false;
+            init() {
+                this.loadOpenCV();
+            },
 
-            // Salva l'ultima posizione, rotazione e scala del modello
-            lastPosition = model.getAttribute('position');
-            lastRotation = model.getAttribute('rotation');
-            lastScale = model.getAttribute('scale');
-
-            // Disattivare l'aggiornamento automatico della posizione
-            model.object3D.position.set(lastPosition.x, lastPosition.y, lastPosition.z);
-            model.object3D.rotation.set(
-                THREE.Math.degToRad(lastRotation.x),
-                THREE.Math.degToRad(lastRotation.y),
-                THREE.Math.degToRad(lastRotation.z)
-            );
-            model.object3D.scale.set(lastScale.x, lastScale.y, lastScale.z);
-
-            // Assicurarsi che il modello rimanga visibile
-            model.setAttribute('visible', 'true');
-        });
-
-        // Nascondere l'overlay di caricamento
-        window.addEventListener("arjs-nft-loaded", () => {
-            console.log('NFT markers have been loaded. Hiding the loading overlay.');
-            document.querySelector('.arjs-loader').style.display = 'none';
-        });
-
-        // Aggiornare continuamente il modello per mantenerlo visibile anche se il marker è perso
-        AFRAME.registerComponent('model-updater', {
-            tick: function () {
-                if (!markerVisible && lastPosition) {
-                    model.object3D.position.set(lastPosition.x, lastPosition.y, lastPosition.z);
-                    model.object3D.rotation.set(
-                        THREE.Math.degToRad(lastRotation.x),
-                        THREE.Math.degToRad(lastRotation.y),
-                        THREE.Math.degToRad(lastRotation.z)
-                    );
-                    model.object3D.scale.set(lastScale.x, lastScale.y, lastScale.z);
-                    model.setAttribute('visible', 'true');
+            loadOpenCV() {
+                console.log('Loading OpenCV.js...');
+                if (!window.cv) {
+                    const opencvScript = document.createElement('script');
+                    opencvScript.src = 'https://docs.opencv.org/master/opencv.js';
+                    opencvScript.async = true;
+                    opencvScript.onload = () => {
+                        console.log('OpenCV.js script loaded.');
+                    };
+                    opencvScript.onerror = () => {
+                        console.error('Failed to load OpenCV.js script.');
+                    };
+                    document.head.appendChild(opencvScript);
+                } else {
+                    console.log('OpenCV.js is already loaded.');
+                    onOpenCvReady();
                 }
-            }
-        });
+            },
 
-        model.setAttribute('model-updater', '');
+            initializeWebcamAndCanvas() {
+                const video = document.querySelector('video');
+                const canvas = document.createElement('canvas');
+                document.body.appendChild(canvas);
+                const ctx = canvas.getContext('2d');
+
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                const processFrame = () => {
+                    ctx.drawImage(video, 0, 0);
+                    const src = cv.imread(canvas);
+                    const dst = new cv.Mat();
+                    cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY);
+                    cv.Canny(src, dst, 50, 100);
+                    cv.imshow(canvas, dst);
+
+                    src.delete();
+                    dst.delete();
+                    requestAnimationFrame(processFrame);
+                };
+                requestAnimationFrame(processFrame);
+            },
+
+            remove() {
+                const canvas = document.querySelector('canvas');
+                if (canvas) {
+                    document.body.removeChild(canvas);
+                }
+                console.log('Cleanup complete.');
+            },
+        });
     </script>
 </body>
 </html>
