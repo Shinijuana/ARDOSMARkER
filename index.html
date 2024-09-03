@@ -52,11 +52,7 @@
         embedded
         gesture-detector
         arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
-        opencv-tracker
     >
-        <a-assets>
-            <a-asset-item id="sandcastleModel" src="assets/sand-castle.glb"></a-asset-item>
-        </a-assets>
         
         <a-nft
             type="nft"
@@ -82,45 +78,6 @@
        
         <a-entity camera></a-entity>
     </a-scene>
-
-    <!-- Script to Enhance Tracking Stability -->
-    <script>
-        AFRAME.registerComponent('opencv-tracker', {
-            schema: {},
-            init: function () {
-                this.lastPosition = new THREE.Vector3();
-                this.lastRotation = new THREE.Quaternion();
-                this.isTracking = false;
-                this.model = document.querySelector('#sandcastle');
-                this.nftMarker = document.querySelector('#nftMarker');
-
-                this.nftMarker.addEventListener('markerFound', () => {
-                    this.isTracking = true;
-                });
-
-                this.nftMarker.addEventListener('markerLost', () => {
-                    this.isTracking = false;
-                    // Freeze the model in the last known position
-                    this.model.setAttribute('position', this.lastPosition);
-                    this.model.object3D.quaternion.copy(this.lastRotation);
-                });
-            },
-
-            tick: function () {
-                if (this.isTracking) {
-                    // Smooth the transition
-                    const currentPos = this.model.object3D.position.clone();
-                    const currentRot = this.model.object3D.quaternion.clone();
-                    
-                    this.lastPosition.lerp(currentPos, 0.2);  // Adjust the lerp factor to smooth
-                    this.lastRotation.slerp(currentRot, 0.2);
-                    
-                    this.model.setAttribute('position', this.lastPosition);
-                    this.model.object3D.quaternion.copy(this.lastRotation);
-                }
-            }
-        });
-    </script>
 
 </body>
 </html>
