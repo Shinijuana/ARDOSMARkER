@@ -51,21 +51,24 @@
         renderer="logarithmicDepthBuffer: true;"
         embedded
         gesture-detector
-        arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+        arjs="trackingMethod: mono_and_matrix; sourceType: webcam; debugUIEnabled: false;"
     >
         
         <a-nft
-            type="nft"
-            url="https://raw.githack.com/Shinijuana/ARDOSMARkER/main/images/nft/dos"
-            smooth="true"
-            smoothCount="10"
-            smoothTolerance=".01"
-            smoothThreshold="5"
-            size=".05"
-            raycaster="objects: .clickable"
-            emitevents="true"
-            cursor="fuse: false; rayOrigin: mouse;"
-            id="nftMarker"
+            <a-nft
+    type="nft"
+    url="https://raw.githack.com/Shinijuana/ARDOSMARkER/main/images/nft/dos"
+    smooth="true"
+    smoothCount="15"   
+    smoothTolerance="0.005" 
+    smoothThreshold="10"
+    size="0.1"  
+    raycaster="objects: .clickable"
+    emitevents="true"
+    cursor="fuse: false; rayOrigin: mouse;"
+    id="nftMarker"
+>
+
         >
             <a-entity
                 id="sandcastle"
