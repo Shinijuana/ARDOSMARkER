@@ -1,62 +1,105 @@
-<script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@1c2407b26c61958baa93967b5412487cd94b290b/dist/aframe-master.min.js"></script>
-<script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>A-Frame Image Tracking Example</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- Import A-Frame and AR.js -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar-nft.js"></script>
+    
+    <!-- Additional libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script async src="https://docs.opencv.org/master/opencv.js"></script>
 
-<style>
-  .arjs-loader {
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    background-color: rgba(0, 0, 0, 0.8);
-    z-index: 9999;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
+    <!-- Custom scripts -->
+    <script src="js/gesture-detector.js"></script>
+    <script src="js/gesture-handler.js"></script>
 
-  .arjs-loader div {
-    text-align: center;
-    font-size: 1.25em;
-    color: white;
-  }
-</style>
+    <!-- Styles for the loader -->
+    <style>
+        .arjs-loader {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-<body style="margin : 0px; overflow: hidden;">
-  <!-- minimal loader shown until image descriptors are loaded -->
-  <div class="arjs-loader">
-    <div>Loading, please wait...</div>
-  </div>
-  <a-scene
-    vr-mode-ui="enabled: false;"
-    renderer="logarithmicDepthBuffer: true;"
-    embedded
-    arjs="trackingMethod: best; sourceType: webcam;debugUIEnabled: false;"
-  >
-    <!-- we use cors proxy to avoid cross-origin problems -->
+        .arjs-loader div {
+            text-align: center;
+            font-size: 1.25em;
+            color: white;
+        }
+    </style>
+        
+</head>
+<body style="margin: 0; overflow: hidden;">
+    <!-- Loading overlay -->
+    <div class="arjs-loader">
+        <div>Loading, please wait...</div>
+    </div>
 
-    <!--
-      ⚠️⚠️⚠️
-      https://arjs-cors-proxy.herokuapp.com/ is now offline, Heroku has dismissed all his free plans from November 2022.
-      You need to host your own proxy and use it instead. The proxy is based on CORS Anywhere (see https://github.com/Rob--W/cors-anywhere).
-      ⚠️⚠️⚠️
-    -->
-
-    <a-nft
-      type="nft"
-      url="https://raw.githack.com/AR-js-org/AR.js/master/aframe/examples/image-tracking/nft/trex/trex-image/trex"
-      smooth="true"
-      smoothCount="10"
-      smoothTolerance=".01"
-      smoothThreshold="5"
+    <!-- A-Frame scene -->
+    <a-scene
+        vr-mode-ui="enabled: false;"
+        renderer="logarithmicDepthBuffer: true;"
+        embedded
+        gesture-detector
+        arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
     >
-      <a-entity
-        gltf-model="https://raw.githack.com/AR-js-org/AR.js/master/aframe/examples/image-tracking/nft/trex/scene.gltf"
-        scale="5 5 5"
-        position="50 150 0"
-      >
-      </a-entity>
-    </a-nft>
-    <a-entity camera></a-entity>
-  </a-scene>
+        <a-assets>
+            <a-asset-item id="sandcastleModel" src="assets/sand-castle.glb"></a-asset-item>
+        </a-assets>
+
+<!-- raycaster="objects: .clickable"
+      emitevents="true"
+      cursor="fuse: false; rayOrigin: mouse;"  -->
+        
+        <a-nft
+            type="nft"
+            url="https://raw.githack.com/AR-js-org/AR.js/master/aframe/examples/image-tracking/nft/trex/trex-image/trex" 
+            smooth="true"
+            smoothCount="10"
+            smoothTolerance=".01"
+            smoothThreshold="5"
+        >
+            <a-entity
+                id="sandcastle"
+                gltf-model="#sandcastleModel"
+                position="0 0 0"
+                scale=".6 .6 .6"
+                gesture-handler
+                class="clickable" 
+            >
+            </a-entity>
+        </a-nft>
+       
+        <a-entity camera></a-entity>
+       
+    </a-scene>
+
+    <!-- Hide loading overlay once NFT markers are loaded -->
+    <script>
+        window.addEventListener("arjs-nft-loaded", () => {
+            console.log('NFT markers have been loaded. Hiding the loading overlay.');
+            document.querySelector('.arjs-loader').style.display = 'none';
+        });
+
+        // Optional: Log errors or warnings if needed
+        window.addEventListener("error", (e) => {
+            console.error('Error detected:', e.message);
+        });
+
+        window.addEventListener("warning", (e) => {
+            console.warn('Warning detected:', e.message);
+        });
+    </script>
 </body>
+</html>
