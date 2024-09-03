@@ -51,8 +51,7 @@
       vr-mode-ui="enabled: false;"
       renderer="logarithmicDepthBuffer: true;"
       embedded
-      arjs="trackingMethod: best; sourceType: webcam;debugUIEnabled: false;"
-    >
+      arjs="trackingMethod: best; sourceType: webcam;debugUIEnabled: false;">
         <a-assets>
             <a-asset-item id="sandcastleModel" src="assets/sand-castle.glb"></a-asset-item>
         </a-assets>
@@ -67,6 +66,7 @@
       raycaster="objects: .clickable"
       emitevents="true"
       cursor="fuse: false; rayOrigin: mouse;">
+        
             <a-entity 
                 id="sandcastle" 
                 gltf-model="#sandcastleModel" 
@@ -77,14 +77,16 @@
                 visible="true">
             </a-entity>
     </a-nft>
+       
     <a-entity camera></a-entity>
+       
     </a-scene>
 
     <script>
-  window.addEventListener("arjs-nft-loaded", (event) => {
-    // Nascondi l'overlay di caricamento
-    document.querySelector('.arjs-loader').style.display = 'none';
-  });
-        
+        window.addEventListener("arjs-nft-loaded", (event) => {
+        // Nascondi l'overlay di caricamento
+        document.querySelector('.arjs-loader').style.display = 'none';
+        });
+    </script>  
 </body>
 </html>
