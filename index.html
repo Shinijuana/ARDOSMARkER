@@ -80,5 +80,12 @@
     </a-nft>
     <a-entity camera></a-entity>
     </a-scene>
+
+    <script>
+  window.addEventListener("arjs-nft-loaded", (event) => {
+    // Nascondi l'overlay di caricamento
+    document.querySelector('.arjs-loader').style.display = 'none';
+  });
+        
 </body>
 </html>
