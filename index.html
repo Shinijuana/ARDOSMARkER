@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>A-Frame AR.js with OpenCV</title>
+    <title>A-Frame AR.js with Improved Tracking</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
@@ -83,83 +83,40 @@
         <a-entity camera></a-entity>
     </a-scene>
 
-    <!-- OpenCV Tracker Script -->
+    <!-- Script to Enhance Tracking Stability -->
     <script>
         AFRAME.registerComponent('opencv-tracker', {
+            schema: {},
             init: function () {
-                console.log("Initializing OpenCV Tracker...");
+                this.lastPosition = new THREE.Vector3();
+                this.lastRotation = new THREE.Quaternion();
+                this.isTracking = false;
+                this.model = document.querySelector('#sandcastle');
+                this.nftMarker = document.querySelector('#nftMarker');
 
-                // Get video feed from AR.js
-                const video = document.querySelector('video');
-                if (!video) {
-                    console.error("No video element found for AR.js");
-                    return;
-                }
+                this.nftMarker.addEventListener('markerFound', () => {
+                    this.isTracking = true;
+                });
 
-                // Create a canvas for processing
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                document.body.appendChild(canvas);
-
-                video.addEventListener('play', () => {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-
-                    const processFrame = () => {
-                        if (video.paused || video.ended) {
-                            return;
-                        }
-
-                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        const src = cv.imread(canvas);
-                        const dst = new cv.Mat();
-                        
-                        // Convert to grayscale
-                        cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
-                        
-                        // Apply Canny edge detection
-                        cv.Canny(dst, dst, 50, 100);
-                        
-                        // Find contours
-                        const contours = new cv.MatVector();
-                        const hierarchy = new cv.Mat();
-                        cv.findContours(dst, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
-
-                        // Update model position based on contours
-                        this.updateModelPosition(contours);
-
-                        src.delete();
-                        dst.delete();
-                        contours.delete();
-                        hierarchy.delete();
-
-                        requestAnimationFrame(processFrame);
-                    };
-
-                    requestAnimationFrame(processFrame);
+                this.nftMarker.addEventListener('markerLost', () => {
+                    this.isTracking = false;
+                    // Freeze the model in the last known position
+                    this.model.setAttribute('position', this.lastPosition);
+                    this.model.object3D.quaternion.copy(this.lastRotation);
                 });
             },
 
-            updateModelPosition: function (contours) {
-                const model = document.querySelector('#sandcastle');
-                if (contours.size() > 0) {
-                    // Logic to stabilize model position based on contours
-                    const rect = cv.boundingRect(contours.get(0));
+            tick: function () {
+                if (this.isTracking) {
+                    // Smooth the transition
+                    const currentPos = this.model.object3D.position.clone();
+                    const currentRot = this.model.object3D.quaternion.clone();
                     
-                    const centerX = rect.x + rect.width / 2;
-                    const centerY = rect.y + rect.height / 2;
+                    this.lastPosition.lerp(currentPos, 0.2);  // Adjust the lerp factor to smooth
+                    this.lastRotation.slerp(currentRot, 0.2);
                     
-                    // Normalize position based on video dimensions
-                    const normX = (centerX / canvas.width) * 2 - 1;
-                    const normY = (centerY / canvas.height) * 2 - 1;
-
-                    // Update model position (adjust scaling and offsets as necessary)
-                    model.object3D.position.set(normX, -normY, 0);
-                    
-                    model.setAttribute('visible', true);
-                } else {
-                    // If no contours found, hide or freeze the model in the last known position
-                    model.setAttribute('visible', false);
+                    this.model.setAttribute('position', this.lastPosition);
+                    this.model.object3D.quaternion.copy(this.lastRotation);
                 }
             }
         });
