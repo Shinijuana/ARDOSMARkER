@@ -18,24 +18,28 @@
 <body>
    <a-scene
       xrweb="disableWorldTracking: false; allowedDevices: any"
-      arjs
-      embedded
       renderer="logarithmicDepthBuffer: true;"
-      vr-mode-ui="enabled: false"
       gesture-detector
       id="scene"
+      vr-mode-ui="enabled: false;"
+      renderer="logarithmicDepthBuffer: true;"
+      embedded
+      arjs="trackingMethod: best; sourceType: webcam;debugUIEnabled: false;"
     >
         <a-assets>
             <a-asset-item id="sandcastleModel" src="assets/sand-castle.glb"></a-asset-item>
         </a-assets>
-    
-       <a-marker
-        preset="hiro"
-        raycaster="objects: .clickable"
-        emitevents="true"
-        cursor="fuse: false; rayOrigin: mouse;"
-        id="markerA"
-      >
+
+    <a-nft
+      type="nft"
+      url="images/markerdos.iset"
+      smooth="true"
+      smoothCount="10"
+      smoothTolerance=".01"
+      smoothThreshold="5"
+      raycaster="objects: .clickable"
+      emitevents="true"
+      cursor="fuse: false; rayOrigin: mouse;">
             <a-entity 
                 id="sandcastle" 
                 gltf-model="#sandcastleModel" 
@@ -45,7 +49,7 @@
                 gesture-handler
                 visible="true">
             </a-entity>
-    </a-marker>
+    </a-nft>
     <a-entity camera></a-entity>
     </a-scene>
 </body>
