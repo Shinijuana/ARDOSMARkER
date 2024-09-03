@@ -16,7 +16,6 @@
 		{
 			"name":"Scene",
 			"nodes":[
-				0,
 				1
 			]
 		}
@@ -24,14 +23,12 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Cube.004",
-			"scale":[
-				100,
-				100,
-				100
-			]
+			"name":"Cube.004"
 		},
 		{
+			"children":[
+				0
+			],
 			"mesh":1,
 			"name":"object_1.004",
 			"scale":[
