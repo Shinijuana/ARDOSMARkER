@@ -54,6 +54,10 @@
         gesture-detector
         arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
     >
+        <a-assets>
+            <a-asset-item id="sandcastleModel" src="assets/sand-castle.glb"></a-asset-item>
+        </a-assets>
+        
         <a-nft
             type="nft"
             url="https://raw.githack.com/Shinijuana/ARDOSMARkER/main/images/nft/dos"
@@ -84,26 +88,25 @@
     <!-- Script per gestire la perdita del target -->
     <script>
         let lastPosition, lastRotation, lastScale;
+        let markerVisible = false;
 
         const model = document.getElementById('sandcastle');
         const nftMarker = document.getElementById('nftMarker');
 
         nftMarker.addEventListener('markerFound', () => {
             console.log('Marker found');
+            markerVisible = true;
             model.setAttribute('visible', 'true');
         });
 
         nftMarker.addEventListener('markerLost', () => {
             console.log('Marker lost');
+            markerVisible = false;
+
             // Salva l'ultima posizione, rotazione e scala del modello
             lastPosition = model.getAttribute('position');
             lastRotation = model.getAttribute('rotation');
             lastScale = model.getAttribute('scale');
-
-            // Mantenere il modello nella sua ultima posizione
-            model.setAttribute('position', lastPosition);
-            model.setAttribute('rotation', lastRotation);
-            model.setAttribute('scale', lastScale);
 
             // Disattivare l'aggiornamento automatico della posizione
             model.object3D.position.set(lastPosition.x, lastPosition.y, lastPosition.z);
@@ -113,6 +116,9 @@
                 THREE.Math.degToRad(lastRotation.z)
             );
             model.object3D.scale.set(lastScale.x, lastScale.y, lastScale.z);
+
+            // Assicurarsi che il modello rimanga visibile
+            model.setAttribute('visible', 'true');
         });
 
         // Nascondere l'overlay di caricamento
@@ -120,6 +126,24 @@
             console.log('NFT markers have been loaded. Hiding the loading overlay.');
             document.querySelector('.arjs-loader').style.display = 'none';
         });
+
+        // Aggiornare continuamente il modello per mantenerlo visibile anche se il marker è perso
+        AFRAME.registerComponent('model-updater', {
+            tick: function () {
+                if (!markerVisible && lastPosition) {
+                    model.object3D.position.set(lastPosition.x, lastPosition.y, lastPosition.z);
+                    model.object3D.rotation.set(
+                        THREE.Math.degToRad(lastRotation.x),
+                        THREE.Math.degToRad(lastRotation.y),
+                        THREE.Math.degToRad(lastRotation.z)
+                    );
+                    model.object3D.scale.set(lastScale.x, lastScale.y, lastScale.z);
+                    model.setAttribute('visible', 'true');
+                }
+            }
+        });
+
+        model.setAttribute('model-updater', '');
     </script>
 </body>
 </html>
