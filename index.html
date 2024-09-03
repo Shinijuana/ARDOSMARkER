@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>A-Frame Image Tracking Example</title>
+    <title>A-Frame AR.js with OpenCV</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    
-    <!-- Import A-Frame and AR.js -->
+
+    <!-- A-Frame and AR.js -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar-nft.js"></script>
 
@@ -16,7 +16,7 @@
     <script src="js/gesture-detector.js"></script>
     <script src="js/gesture-handler.js"></script>
 
-    <!-- Styles for the loader -->
+    <!-- Styles for loader -->
     <style>
         .arjs-loader {
             height: 100%;
@@ -45,14 +45,14 @@
         <div>Loading, please wait...</div>
     </div>
 
-    <!-- A-Frame scene -->
+    <!-- A-Frame Scene -->
     <a-scene
         vr-mode-ui="enabled: false;"
         renderer="logarithmicDepthBuffer: true;"
         embedded
         gesture-detector
         arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
-        tensorflow-contour-processor
+        opencv-tracker
     >
         <a-assets>
             <a-asset-item id="sandcastleModel" src="assets/sand-castle.glb"></a-asset-item>
@@ -81,79 +81,89 @@
         </a-nft>
        
         <a-entity camera></a-entity>
-       
     </a-scene>
 
-    <!-- OpenCV TensorFlow Script -->
+    <!-- OpenCV Tracker Script -->
     <script>
-        window.onOpenCvReady = () => {
-            cv.onRuntimeInitialized = () => {
-                console.log('OpenCV.js is ready.');
+        AFRAME.registerComponent('opencv-tracker', {
+            init: function () {
+                console.log("Initializing OpenCV Tracker...");
 
-                AFRAME.components['tensorflow-contour-processor'].initializeWebcamAndCanvas();
-            };
-        };
-
-        AFRAME.registerComponent('tensorflow-contour-processor', {
-            schema: {
-                targetName: { type: 'string' },
-            },
-
-            init() {
-                this.loadOpenCV();
-            },
-
-            loadOpenCV() {
-                console.log('Loading OpenCV.js...');
-                if (!window.cv) {
-                    const opencvScript = document.createElement('script');
-                    opencvScript.src = 'https://docs.opencv.org/master/opencv.js';
-                    opencvScript.async = true;
-                    opencvScript.onload = () => {
-                        console.log('OpenCV.js script loaded.');
-                    };
-                    opencvScript.onerror = () => {
-                        console.error('Failed to load OpenCV.js script.');
-                    };
-                    document.head.appendChild(opencvScript);
-                } else {
-                    console.log('OpenCV.js is already loaded.');
-                    onOpenCvReady();
-                }
-            },
-
-            initializeWebcamAndCanvas() {
+                // Get video feed from AR.js
                 const video = document.querySelector('video');
-                const canvas = document.createElement('canvas');
-                document.body.appendChild(canvas);
-                const ctx = canvas.getContext('2d');
-
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-
-                const processFrame = () => {
-                    ctx.drawImage(video, 0, 0);
-                    const src = cv.imread(canvas);
-                    const dst = new cv.Mat();
-                    cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY);
-                    cv.Canny(src, dst, 50, 100);
-                    cv.imshow(canvas, dst);
-
-                    src.delete();
-                    dst.delete();
-                    requestAnimationFrame(processFrame);
-                };
-                requestAnimationFrame(processFrame);
-            },
-
-            remove() {
-                const canvas = document.querySelector('canvas');
-                if (canvas) {
-                    document.body.removeChild(canvas);
+                if (!video) {
+                    console.error("No video element found for AR.js");
+                    return;
                 }
-                console.log('Cleanup complete.');
+
+                // Create a canvas for processing
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                document.body.appendChild(canvas);
+
+                video.addEventListener('play', () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+
+                    const processFrame = () => {
+                        if (video.paused || video.ended) {
+                            return;
+                        }
+
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        const src = cv.imread(canvas);
+                        const dst = new cv.Mat();
+                        
+                        // Convert to grayscale
+                        cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
+                        
+                        // Apply Canny edge detection
+                        cv.Canny(dst, dst, 50, 100);
+                        
+                        // Find contours
+                        const contours = new cv.MatVector();
+                        const hierarchy = new cv.Mat();
+                        cv.findContours(dst, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
+
+                        // Update model position based on contours
+                        this.updateModelPosition(contours);
+
+                        src.delete();
+                        dst.delete();
+                        contours.delete();
+                        hierarchy.delete();
+
+                        requestAnimationFrame(processFrame);
+                    };
+
+                    requestAnimationFrame(processFrame);
+                });
             },
+
+            updateModelPosition: function (contours) {
+                const model = document.querySelector('#sandcastle');
+                if (contours.size() > 0) {
+                    // Logic to stabilize model position based on contours
+                    const rect = cv.boundingRect(contours.get(0));
+                    
+                    const centerX = rect.x + rect.width / 2;
+                    const centerY = rect.y + rect.height / 2;
+                    
+                    // Normalize position based on video dimensions
+                    const normX = (centerX / canvas.width) * 2 - 1;
+                    const normY = (centerY / canvas.height) * 2 - 1;
+
+                    // Update model position (adjust scaling and offsets as necessary)
+                    model.object3D.position.set(normX, -normY, 0);
+                    
+                    model.setAttribute('visible', true);
+                } else {
+                    // If no contours found, hide or freeze the model in the last known position
+                    model.setAttribute('visible', false);
+                }
+            }
         });
     </script>
+
 </body>
 </html>
