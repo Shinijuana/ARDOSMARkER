@@ -16,14 +16,93 @@
 		{
 			"name":"Scene",
 			"nodes":[
-				0
+				1
 			]
 		}
 	],
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"object_1.002"
+			"name":"object_1.002",
+			"rotation":[
+				0.7071073651313782,
+				0,
+				0,
+				0.7071062922477722
+			],
+			"scale":[
+				2.6666665077209473,
+				2.6666665077209473,
+				39.999996185302734
+			],
+			"translation":[
+				0,
+				10.15000057220459,
+				0
+			]
+		},
+		{
+			"children":[
+				0
+			],
+			"mesh":1,
+			"name":"Cube.002",
+			"rotation":[
+				0,
+				-0.7071068286895752,
+				0,
+				0.7071068286895752
+			],
+			"scale":[
+				0.30000001192092896,
+				0.019999999552965164,
+				0.30000001192092896
+			],
+			"translation":[
+				0,
+				-0.2029999941587448,
+				0
+			]
+		}
+	],
+	"animations":[
+		{
+			"channels":[
+				{
+					"sampler":0,
+					"target":{
+						"node":1,
+						"path":"translation"
+					}
+				}
+			],
+			"name":"CubeAction.001",
+			"samplers":[
+				{
+					"input":8,
+					"interpolation":"LINEAR",
+					"output":9
+				}
+			]
+		},
+		{
+			"channels":[
+				{
+					"sampler":0,
+					"target":{
+						"node":0,
+						"path":"translation"
+					}
+				}
+			],
+			"name":"object_1.003Action.001",
+			"samplers":[
+				{
+					"input":10,
+					"interpolation":"STEP",
+					"output":11
+				}
+			]
 		}
 	],
 	"materials":[
@@ -73,7 +152,12 @@
 					},
 					"indices":3,
 					"material":0
-				},
+				}
+			]
+		},
+		{
+			"name":"Cube.004",
+			"primitives":[
 				{
 					"attributes":{
 						"POSITION":4,
@@ -109,14 +193,14 @@
 			"componentType":5126,
 			"count":109918,
 			"max":[
-				23.41982650756836,
-				56.569488525390625,
-				16.424367904663086
+				0.2053045928478241,
+				0.29999563097953796,
+				0.2301502525806427
 			],
 			"min":[
-				-23.99964714050293,
-				3.9005398750305176,
-				-18.10227394104004
+				-0.22627843916416168,
+				-0.29274782538414,
+				-0.42821159958839417
 			],
 			"type":"VEC3"
 		},
@@ -143,14 +227,14 @@
 			"componentType":5126,
 			"count":24,
 			"max":[
-				30.00000762939453,
-				4.012559413909912,
-				30.000003814697266
+				1,
+				1,
+				1
 			],
 			"min":[
-				-30.000001907348633,
-				0.01255422830581665,
-				-30.000003814697266
+				-1,
+				-1,
+				-1
 			],
 			"type":"VEC3"
 		},
@@ -171,6 +255,42 @@
 			"componentType":5123,
 			"count":36,
 			"type":"SCALAR"
+		},
+		{
+			"bufferView":8,
+			"componentType":5126,
+			"count":80,
+			"max":[
+				3.3333333333333335
+			],
+			"min":[
+				0.041666666666666664
+			],
+			"type":"SCALAR"
+		},
+		{
+			"bufferView":9,
+			"componentType":5126,
+			"count":80,
+			"type":"VEC3"
+		},
+		{
+			"bufferView":10,
+			"componentType":5126,
+			"count":2,
+			"max":[
+				3.3333333333333335
+			],
+			"min":[
+				0.041666666666666664
+			],
+			"type":"SCALAR"
+		},
+		{
+			"bufferView":11,
+			"componentType":5126,
+			"count":2,
+			"type":"VEC3"
 		}
 	],
 	"bufferViews":[
@@ -221,6 +341,26 @@
 			"byteLength":72,
 			"byteOffset":3962240,
 			"target":34963
+		},
+		{
+			"buffer":0,
+			"byteLength":320,
+			"byteOffset":3962312
+		},
+		{
+			"buffer":0,
+			"byteLength":960,
+			"byteOffset":3962632
+		},
+		{
+			"buffer":0,
+			"byteLength":8,
+			"byteOffset":3963592
+		},
+		{
+			"buffer":0,
+			"byteLength":24,
+			"byteOffset":3963600
 		}
 	],
 	"samplers":[
@@ -231,7 +371,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":3962312,
+			"byteLength":3963624,
 			"uri":"busto%20emilio.bin"
 		}
 	]
